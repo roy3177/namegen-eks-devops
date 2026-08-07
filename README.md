@@ -2,8 +2,7 @@
 
 A Random Name Generator application deployed on **Amazon EKS**, demonstrating a full DevOps workflow: containerization, Infrastructure as Code, Kubernetes, and CI/CD.
 
-This is a **DevOps project** — the focus is the infrastructure and deployment pipeline, not the application itself. The application (Node.js + Express + MongoDB) is based on [reselbob/random-name-gen-app](https://github.com/reselbob/random-name-gen-app).
-
+This is a **DevOps project** — the focus is the infrastructure and deployment pipeline, not the application itself. 
 ---
 
 ## Architecture

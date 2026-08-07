@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
         - name: namegen-app
-          image: roy3177/namegen:v1
+          image: roy3177/namegen:v2
           ports:
             - containerPort: 8080
           env:

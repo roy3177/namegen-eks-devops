@@ -1,143 +1,203 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Random Name Generator and Saver</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
-</head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Random Name Generator &amp; Saver</title>
+<meta name="description" content="Generate a random first and last name, save it to your list, and clear it anytime.">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&family=Sora:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest"></script>
+
 <style>
-    #mainDiv {
-        list-style-type: upper-roman;
-        padding-left: 50px;
-        color: #000080;
-    }
+  :root {
+    --radius: 1rem;
+    --background: oklch(0.16 0.035 264);
+    --foreground: oklch(0.97 0.005 250);
+    --card: oklch(0.21 0.04 264);
+    --primary: oklch(0.78 0.16 175);
+    --primary-foreground: oklch(0.17 0.04 200);
+    --secondary: oklch(0.27 0.045 264);
+    --secondary-foreground: oklch(0.97 0.005 250);
+    --secondary-60: oklch(0.27 0.045 264 / 60%);
+    --muted: oklch(0.26 0.04 264);
+    --muted-foreground: oklch(0.72 0.03 258);
+    --accent: oklch(0.72 0.14 300);
+    --destructive: oklch(0.62 0.2 20);
+    --border: oklch(1 0 0 / 12%);
+
+    --gradient-hero:
+      radial-gradient(120% 120% at 15% 0%, color-mix(in oklab, var(--accent) 28%, transparent), transparent 60%),
+      radial-gradient(100% 100% at 90% 20%, color-mix(in oklab, var(--primary) 24%, transparent), transparent 55%);
+    --gradient-primary: linear-gradient(135deg, var(--primary), color-mix(in oklab, var(--accent) 70%, var(--primary)));
+    --shadow-elegant: 0 24px 60px -24px color-mix(in oklab, var(--primary) 45%, transparent);
+    --shadow-card: 0 8px 30px -12px oklch(0 0 0 / 55%);
+  }
+
+  body {
+    background-color: var(--background);
+    background-image: var(--gradient-hero);
+    background-attachment: fixed;
+    color: var(--foreground);
+    font-family: 'Manrope', ui-sans-serif, system-ui, sans-serif;
+  }
+
+  h1, h2 { font-family: 'Sora', ui-sans-serif, system-ui, sans-serif; letter-spacing: -0.02em; }
+
+  .surface-card {
+    background: color-mix(in oklab, var(--card) 82%, transparent);
+    border: 1px solid var(--border);
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(14px);
+  }
+
+  .text-gradient {
+    background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
 </style>
-<body onload="getNames()">
-<div id="mainDiv">
-<h1>Random Name Generator and Saver</h1>
-<p>1. Click this button to get a random name:<br/>
-    <button type="button" id="btnRandom"  onclick="getRandomName()">Get Random Name</button>
-    <br/>
-<div id="'randomName">
-    <span>First Name: </span><span id="firstName"></span>
-    <br/>
-    <span>Last Name: </span><span id="lastName"></span>
-</div>
-</p>
-<hr>
-<p>2. Click this button save the random name to a database:<br/>
-    <button id="btnSave" type="button" onclick="saveName()" disabled>Save Name</button>
-    <div id="saveResponse"></div>
-</p>
-<hr>
-<p>List of Names:<br/>
-    <!--
-    <button type="button" onclick="getNames()">See All Names</button>
-    <br/>
-    -->
-    <div id='namesList'></div>
-</p>
-<hr>
-<p>Optional: Clear the list data from the database:<br/>
-    <button type="button" onclick="clearNames()">Clear Names from DB</button>
-<div id="deleteResponse"></div>
+</head>
 
-</p>
-</div>
-</body>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js">
-</script>
+<body class="min-h-screen" onload="init()">
+
+<main class="mx-auto w-full max-w-3xl px-6 py-16 md:py-24">
+
+  <header class="mb-12">
+    <span class="inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-medium tracking-wide uppercase"
+          style="border-color: var(--border); background: var(--secondary-60); color: var(--muted-foreground);">
+      <i data-lucide="dices" class="w-3.5 h-3.5"></i> Name Lab
+    </span>
+    <h1 class="mt-5 text-4xl leading-tight font-bold md:text-6xl">
+      Random Name <span class="text-gradient">Generator</span>
+    </h1>
+    <p class="mt-4 max-w-xl text-base" style="color: var(--muted-foreground);">
+      Roll a fresh identity, keep the ones you like, and clear the list whenever you want.
+    </p>
+  </header>
+
+  <!-- Step 1: Generate -->
+  <section class="surface-card rounded-3xl p-7 md:p-9">
+    <div class="flex flex-col gap-6 md:flex-row md:items-center md:justify-between">
+      <div class="min-w-0">
+        <p class="text-xs font-semibold tracking-widest uppercase" style="color: var(--muted-foreground);">Step 1 — Generate</p>
+        <div class="mt-4 flex items-center gap-4">
+          <div class="grid w-14 h-14 shrink-0 place-items-center rounded-2xl" style="background: var(--secondary); color: var(--muted-foreground);">
+            <i data-lucide="user" class="w-6 h-6"></i>
+          </div>
+          <div class="min-w-0">
+            <p id="currentName" class="truncate text-2xl font-semibold md:text-3xl">—</p>
+            <p id="currentStatus" class="mt-1 text-sm" style="color: var(--muted-foreground);">No name generated yet</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-3">
+        <button id="btnRandom" onclick="getRandomName()"
+                class="inline-flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold transition-transform hover:-translate-y-0.5"
+                style="background-image: var(--gradient-primary); box-shadow: var(--shadow-elegant); color: var(--primary-foreground);">
+          <i data-lucide="dices" class="w-4 h-4"></i> Get Random Name
+        </button>
+        <button id="btnSave" onclick="saveName()" disabled
+                class="inline-flex items-center gap-2 rounded-xl border px-5 py-3 text-sm font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+                style="border-color: var(--border); background: var(--secondary); color: var(--secondary-foreground);">
+          <i data-lucide="save" class="w-4 h-4"></i> Save Name
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Saved names -->
+  <section class="surface-card mt-6 rounded-3xl p-7 md:p-9">
+    <div class="flex items-center justify-between gap-4">
+      <div>
+        <p class="text-xs font-semibold tracking-widest uppercase" style="color: var(--muted-foreground);">Saved names</p>
+        <h2 id="namesCount" class="mt-1 text-xl font-semibold">0 entries</h2>
+      </div>
+      <button id="btnClear" onclick="clearNames()" disabled
+              class="inline-flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-40"
+              style="border-color: var(--border); color: var(--muted-foreground);">
+        <i data-lucide="trash-2" class="w-4 h-4"></i> Clear all
+      </button>
+    </div>
+
+    <div id="namesEmpty" class="mt-8 rounded-2xl border border-dashed py-10 text-center text-sm"
+         style="border-color: var(--border); color: var(--muted-foreground);">
+      Your saved names will appear here.
+    </div>
+    <ul id="namesList" class="mt-6 divide-y hidden" style="border-color: var(--border);"></ul>
+  </section>
+
+</main>
+
 <script>
-    function clearNames() {
-        $.ajax({
-            url: '/api/names',
-            type: 'DELETE',
-            success: function(data) {
-                document.getElementById('namesList').children[0].remove();
-                document.getElementById('deleteResponse').innerText = "All names have been deleted from database."
-                document.getElementById('firstName').innerText = ''
-                document.getElementById('lastName').innerText = '';
+  async function init() {
+    lucide.createIcons();
+    await refreshNames();
+  }
 
+  async function getRandomName() {
+    const res = await fetch('/api/random_name');
+    const data = await res.json();
+    document.getElementById('currentName').innerText = `${data.firstName} ${data.lastName}`;
+    document.getElementById('currentStatus').innerText = 'Ready to save';
+    document.getElementById('btnSave').disabled = false;
+  }
 
-                //toggle the btnRandom and btnSave buttons
-                document.getElementById('btnRandom').disabled = false;
-                document.getElementById('btnSave').disabled = !document.getElementById('btnRandom').disabled ;
-            }
-        });
+  async function saveName() {
+    const [firstName, lastName] = document.getElementById('currentName').innerText.split(' ');
+    if (!firstName || !lastName) return;
+
+    await fetch('/api/names', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ firstName, lastName })
+    });
+
+    document.getElementById('currentName').innerText = '—';
+    document.getElementById('currentStatus').innerText = 'No name generated yet';
+    document.getElementById('btnSave').disabled = true;
+
+    await refreshNames();
+  }
+
+  async function clearNames() {
+    await fetch('/api/names', { method: 'DELETE' });
+    await refreshNames();
+  }
+
+  async function refreshNames() {
+    const res = await fetch('/api/names');
+    const names = await res.json();
+
+    document.getElementById('namesCount').innerText = `${names.length} ${names.length === 1 ? 'entry' : 'entries'}`;
+    document.getElementById('btnClear').disabled = names.length === 0;
+
+    const list = document.getElementById('namesList');
+    const empty = document.getElementById('namesEmpty');
+
+    if (names.length === 0) {
+      list.classList.add('hidden');
+      empty.classList.remove('hidden');
+      return;
     }
-
-
-    function getRandomName() {
-        const apiUrl = '/api/random_name';
-        fetch(apiUrl).then(response => {
-            return response.json();
-        }).then(data => {
-            document.getElementById('firstName').innerText = data.firstName;
-            document.getElementById('lastName').innerText = data.lastName;
-            // Work with JSON data here
-            logger.info(data);
-        }).catch(err => {
-            // Do something for an error here
-        });
-
-        //toggle the btnRandom and btnSave buttons
-        document.getElementById('btnRandom').disabled = true;
-        document.getElementById('btnSave').disabled = !document.getElementById('btnRandom').disabled ;
-    }
-
-    function saveName() {
-        const firstName = document.getElementById('firstName').innerText;
-        const lastName = document.getElementById('lastName').innerText;
-        const settings = {
-            "url": "/api/names",
-            "method": "POST",
-            "headers": {
-                "Content-Type": "application/json"
-            },
-            "data": JSON.stringify({"firstName":firstName,"lastName": lastName}),
-        };
-        $.ajax({
-            ...settings,
-            success: function (result) {
-                document.getElementById('saveResponse').innerText = `${firstName} ${lastName}: Name has been saved to database.`;
-                getNames();
-            },
-            error : function (){
-                document.getElementById('saveResponse').innerText = `Save did not happen.`;
-            }
-        })
-        //toggle the btnRandom and btnSave buttons
-        document.getElementById('btnRandom').disabled = false;
-        document.getElementById('btnSave').disabled = !document.getElementById('btnRandom').disabled ;
-    }
-
-    function printNames(names) {
-        const parent = document.getElementById('namesList');
-        // clear the existing tree
-        if( parent.children && parent.children.length > 0){
-            parent.children[0].remove();
-        }
-        const ul = document.createElement("ul");
-        names.forEach( name => {
-            const li = document.createElement("li");
-            const text = document.createTextNode(`${name.firstName} ${name.lastName}`);
-            li.appendChild(text);
-            ul.appendChild(li);
-        })
-        parent.append(ul);
-    }
-
-    function getNames() {
-        document.getElementById('deleteResponse').innerText = '';
-        const apiUrl = '/api/names';
-        fetch(apiUrl).then(response => {
-            return response.json();
-        }).then(data => {
-            printNames(data);
-            logger.info(data);
-        }).catch(err => {
-            // Do something for an error here
-        });
-    }
+    empty.classList.add('hidden');
+    list.classList.remove('hidden');
+    list.innerHTML = '';
+    names.forEach((n, i) => {
+      const li = document.createElement('li');
+      li.className = 'flex items-center gap-3 py-3.5';
+      li.innerHTML = `
+        <span class="w-6 text-sm tabular-nums" style="color: var(--muted-foreground);">${i + 1}</span>
+        <span class="font-medium">${n.firstName} <span style="color: var(--muted-foreground);">${n.lastName}</span></span>
+      `;
+      list.appendChild(li);
+    });
+  }
 </script>
+</body>
 </html>

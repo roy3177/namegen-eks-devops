@@ -13,6 +13,11 @@ A Random Name Generator application deployed on **Amazon EKS**, demonstrating a 
 
 This is a **DevOps project** — the focus is the infrastructure and deployment pipeline, not the application itself. The application (Node.js + Express + MongoDB) is based on [reselbob/random-name-gen-app](https://github.com/reselbob/random-name-gen-app).
 
+🌐 **Live demo (while infra is up):** http://ad4624b8cda7f4d699dd80c7fd651736-4c969b263e9ab04f.elb.us-east-1.amazonaws.com/
+> ⚠️ This URL is only valid while the Terraform-managed infrastructure exists. It is destroyed (and a new, different URL is generated on the next `terraform apply`) whenever `terraform destroy` is run — see [Cost Notes](#cost-notes). To get the current URL yourself: `kubectl get service namegen-service -n namegen`.
+
+![App screenshot](screenshots/site.png)
+
 ---
 
 ## Table of Contents
@@ -81,7 +86,7 @@ More detail in [`skills/architecture.md`](skills/architecture.md).
 ├── kubernetes/           # K8s manifests (namespace, StatefulSet, Deployment, Services)
 ├── skills/               # Project conventions & standards (Docker, K8s, Terraform, CI/CD, cost, debugging)
 ├── diagrams/             # Architecture & CI/CD diagrams (WIP)
-├── screenshots/          # Deployment screenshots (WIP)
+├── screenshots/          # Deployment screenshots
 └── .github/workflows/    # CI/CD pipeline (WIP)
 ```
 

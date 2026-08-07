@@ -1,8 +1,30 @@
-# NameGen on EKS — DevOps Final Project
+# 🎲 NameGen on EKS — DevOps Final Project
 
 A Random Name Generator application deployed on **Amazon EKS**, demonstrating a full DevOps workflow: containerization, Infrastructure as Code, Kubernetes, and CI/CD.
 
+![License](https://img.shields.io/badge/license-MIT-blue)
+![Status](https://img.shields.io/badge/status-active-brightgreen)
+![IaC](https://img.shields.io/badge/IaC-Terraform-844FBA?logo=terraform&logoColor=white)
+![Kubernetes](https://img.shields.io/badge/Kubernetes-EKS-326CE5?logo=kubernetes&logoColor=white)
+![AWS](https://img.shields.io/badge/AWS-EKS-FF9900?logo=amazonaws&logoColor=white)
+![Docker](https://img.shields.io/badge/Docker-container-2496ED?logo=docker&logoColor=white)
+![MongoDB](https://img.shields.io/badge/MongoDB-StatefulSet-47A248?logo=mongodb&logoColor=white)
+![Node.js](https://img.shields.io/badge/Node.js-Express-339933?logo=node.js&logoColor=white)
+
 This is a **DevOps project** — the focus is the infrastructure and deployment pipeline, not the application itself. The application (Node.js + Express + MongoDB) is based on [reselbob/random-name-gen-app](https://github.com/reselbob/random-name-gen-app).
+
+---
+
+## Table of Contents
+
+- [Architecture](#architecture)
+- [Repository Structure](#repository-structure)
+- [Prerequisites](#prerequisites)
+- [Deployment](#deployment)
+- [CI/CD](#cicd)
+- [Cost Notes](#cost-notes)
+- [Author](#author)
+- [License](#license)
 
 ---
 
@@ -138,6 +160,22 @@ This project prioritizes minimum AWS cost (see [`skills/aws_costs.md`](skills/aw
 cd terraform
 terraform destroy
 ```
+
+---
+
+## Author
+
+<div align="center">
+
+**Roy Meoded**
+
+Software Developer
+
+[![GitHub](https://img.shields.io/badge/GitHub-roy3177-181717?logo=github&logoColor=white)](https://github.com/roy3177)
+[![LinkedIn](https://img.shields.io/badge/LinkedIn-Roy%20Meoded-0A66C2?logo=linkedin&logoColor=white)](https://www.linkedin.com/in/roy-meoded/)
+[![Email](https://img.shields.io/badge/Email-contact-D14836?logo=gmail&logoColor=white)](mailto:roymeoded2512@gmail.com)
+
+</div>
 
 ---
 

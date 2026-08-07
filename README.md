@@ -187,3 +187,4 @@ Software Developer
 ## License
 
 Application code adapted from [reselbob/random-name-gen-app](https://github.com/reselbob/random-name-gen-app) (MIT License). Infrastructure and deployment configuration in this repository are original work for this project.
+

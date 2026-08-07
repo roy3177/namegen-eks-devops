@@ -1,0 +1,14 @@
+# Terraform
+terraform/.terraform/
+terraform/terraform.tfstate
+terraform/terraform.tfstate.backup
+terraform/terraform.tfvars
+terraform/crash.log
+
+# Node.js
+app/node_modules/
+app/.env
+
+# OS / editor
+.DS_Store
+Thumbs.db

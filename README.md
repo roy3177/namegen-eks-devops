@@ -70,7 +70,7 @@ More detail in [`skills/architecture.md`](skills/architecture.md).
 - [Terraform](https://developer.hashicorp.com/terraform) >= 1.5
 - [kubectl](https://kubernetes.io/docs/tasks/tools/)
 - [Docker](https://www.docker.com/)
-- A [Docker Hub](https://hub.docker.com) account
+- [Docker Hub](https://hub.docker.com) account
 
 ---
 

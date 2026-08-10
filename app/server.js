@@ -74,6 +74,12 @@ app.get('/api/random_name', (req, res) => {
     res.status(200).send(randomName);
 });
 
-server = app.listen(port, () => {
-    logger.info(`Node server is running on port ${port} at ${new Date()}`);
-});
+// Only start listening when run directly (`node server.js`), not when
+// required by tests (e.g. via supertest, which talks to `app` in-process).
+if (require.main === module) {
+    app.listen(port, () => {
+        logger.info(`Node server is running on port ${port} at ${new Date()}`);
+    });
+}
+
+module.exports = app;

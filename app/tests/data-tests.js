@@ -19,8 +19,9 @@ describe('Data Tests', () => {
     it('Can connect to DB', async () => {
         const connection = await getConnection();
         expect(connection).to.be.an('object');
-        connection.disconnect();
-
+        // Note: not disconnecting here — getConnection() caches a single
+        // shared connection for the whole process, so disconnecting it
+        // would break every subsequent test that also calls getConnection().
     }).timeout(5000);
 
     it('Can create Person to DB', async () => {

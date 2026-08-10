@@ -2,6 +2,7 @@
 
 A Random Name Generator application deployed on **Amazon EKS**, demonstrating a full DevOps workflow: containerization, Infrastructure as Code, Kubernetes, and CI/CD.
 
+![CI/CD](https://github.com/roy3177/namegen-eks-devops/actions/workflows/deploy.yml/badge.svg)
 ![License](https://img.shields.io/badge/license-MIT-blue)
 ![Status](https://img.shields.io/badge/status-active-brightgreen)
 ![IaC](https://img.shields.io/badge/IaC-Terraform-844FBA?logo=terraform&logoColor=white)
@@ -13,7 +14,7 @@ A Random Name Generator application deployed on **Amazon EKS**, demonstrating a 
 
 This is a **DevOps project** — the focus is the infrastructure and deployment pipeline, not the application itself. The application (Node.js + Express + MongoDB) is based on [reselbob/random-name-gen-app](https://github.com/reselbob/random-name-gen-app).
 
-🌐 **Live demo (while infra is up):** http://ad4624b8cda7f4d699dd80c7fd651736-4c969b263e9ab04f.elb.us-east-1.amazonaws.com/
+🌐 **Live demo (while infra is up):** http://ac82cdc721cf64f838eabb8f79e43b04-b03027d493182b76.elb.us-east-1.amazonaws.com/
 > ⚠️ This URL is only valid while the Terraform-managed infrastructure exists. It is destroyed (and a new, different URL is generated on the next `terraform apply`) whenever `terraform destroy` is run — see [Cost Notes](#cost-notes). To get the current URL yourself: `kubectl get service namegen-service -n namegen`.
 
 ![App screenshot](screenshots/site.png)
@@ -150,7 +151,15 @@ Once `namegen-service` has an `EXTERNAL-IP` (a few minutes), open it in a browse
 
 ## CI/CD
 
-A GitHub Actions pipeline (`.github/workflows/deploy.yml`) is planned to automate: build → push image → deploy to EKS → verify rollout, on every push to `main`. *(In progress — not yet implemented.)*
+A GitHub Actions pipeline (`.github/workflows/deploy.yml`) automates the full release process on every push to `main`:
+
+1. **Install & Test** — installs dependencies and runs the test suite against a real MongoDB (spun up as a service container).
+2. **Build & Push Docker Image** — builds the image and pushes it to Docker Hub, tagged with the commit SHA (plus `latest`).
+3. **Deploy to EKS** — updates the app `Deployment`'s image and waits for the rollout to complete. MongoDB's StatefulSet/PVC are left untouched on routine releases.
+
+Authentication uses a dedicated, least-privilege IAM user (`github-actions-namegen`) via GitHub Secrets, scoped to `eks:DescribeCluster` on AWS and to `edit` access within the `namegen` namespace in Kubernetes (via an `aws_eks_access_entry`, see `terraform/eks-access.tf`) — not cluster-admin.
+
+> ⚠️ The **Deploy to EKS** step requires the EKS cluster to currently exist. Since the infrastructure is destroyed between work sessions to save cost (see [Cost Notes](#cost-notes)), this step will fail with a "cluster not found" error whenever the infra is down — that's expected, not a bug.
 
 ---
 

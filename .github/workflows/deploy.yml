@@ -1,0 +1,98 @@
+name: Build, Push and Deploy
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  IMAGE_NAME: roy3177/namegen
+  AWS_REGION: us-east-1
+  EKS_CLUSTER_NAME: namegen-eks
+  NAMESPACE: namegen
+
+jobs:
+  # Install dependencies and run the test suite against a real MongoDB
+  # (spun up as a GitHub Actions service container, torn down after the job).
+  test:
+    name: Install & Test
+    runs-on: ubuntu-latest
+    services:
+      mongodb:
+        image: mongo:6
+        ports:
+          - 27017:27017
+    defaults:
+      run:
+        working-directory: app
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+          cache-dependency-path: app/package-lock.json
+
+      - run: npm ci
+      - run: npm test
+        env:
+          MONGODB_URL: mongodb://localhost:27017
+
+  # Build the Docker image and push it to Docker Hub with an immutable
+  # (commit SHA) tag, plus a rolling `latest` tag.
+  build-and-push:
+    name: Build & Push Docker Image
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - uses: docker/build-push-action@v6
+        with:
+          context: .
+          push: true
+          tags: |
+            ${{ env.IMAGE_NAME }}:${{ github.sha }}
+            ${{ env.IMAGE_NAME }}:latest
+
+  # Update the running Deployment to use the new image and wait for the
+  # rollout to finish. Only touches the app Deployment — MongoDB's
+  # StatefulSet/PVC are left alone, as they should be on a routine release.
+  #
+  # NOTE: this job requires the EKS cluster to currently exist (it is
+  # destroyed between work sessions to save cost). It is expected to fail
+  # with a "cluster not found" error when the infrastructure is down —
+  # that is not a bug. Run `terraform apply` first to test this stage.
+  deploy:
+    name: Deploy to EKS
+    runs-on: ubuntu-latest
+    needs: build-and-push
+    steps:
+      - uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.AWS_REGION }}
+
+      - run: aws eks update-kubeconfig --region ${{ env.AWS_REGION }} --name ${{ env.EKS_CLUSTER_NAME }}
+
+      - run: >
+          kubectl set image deployment/namegen-app
+          namegen-app=${{ env.IMAGE_NAME }}:${{ github.sha }}
+          --namespace ${{ env.NAMESPACE }}
+
+      - run: kubectl rollout status deployment/namegen-app --namespace ${{ env.NAMESPACE }} --timeout=180s
+
+      - run: |
+          kubectl get pods --namespace ${{ env.NAMESPACE }}
+          kubectl get services --namespace ${{ env.NAMESPACE }}

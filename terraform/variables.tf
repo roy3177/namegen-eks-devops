@@ -39,3 +39,8 @@ variable "node_desired_size" {
   type        = number
   default     = 1
 }
+
+variable "github_actions_iam_user_arn" {
+  description = "ARN of the IAM user GitHub Actions uses to deploy to EKS (granted kubectl access via aws_eks_access_entry)"
+  type        = string
+}

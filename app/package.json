@@ -4,7 +4,7 @@
   "description": "A demonstration application for automatically generating names for storage in a database",
   "main": "server.js",
   "scripts": {
-    "test": "mocha tests/**/*.js"
+    "test": "mocha tests/**/*.js --exit"
   },
   "author": "Bob Reselman <reselbob@gmail.com>",
   "license": "MIT",

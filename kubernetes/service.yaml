@@ -8,6 +8,16 @@ metadata:
     component: application
   annotations:
     service.beta.kubernetes.io/aws-load-balancer-type: nlb
+    # Defaults to "internal" (private VPC IPs only) without this — confirmed
+    # by testing: DNS resolved fine but only to 10.0.x.x addresses.
+    service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing
+    # Auto-discovery via subnet tags returned 0 candidates in testing
+    # (Auto Mode's built-in LB controller, unlike the classic AWS Load
+    # Balancer Controller, didn't pick up the subnets despite correct
+    # kubernetes.io/role/elb + eks:eks-cluster-name tags) — select by the
+    # subnets' Name tag instead (stable across terraform destroy/apply,
+    # unlike raw subnet IDs which change every time).
+    service.beta.kubernetes.io/aws-load-balancer-subnets: namegen-public-0, namegen-public-1
 spec:
   type: LoadBalancer
   selector:

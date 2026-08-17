@@ -12,10 +12,14 @@ let connection;
 const getConnection = async () => {
     if (!connection) {
         let mStr = process.env.MONGODB_URL;
+        // Split off any query string (e.g. ?authSource=admin) before
+        // checking/appending the db name, so it doesn't get appended
+        // after the query string by mistake.
+        const [base, query] = mStr.split('?');
         let url = mStr;
         //make sure there is a database name in play
-        if(mStr.substring(mStr.length - dbName.length) !== dbName){
-            url = mStr + '/' + dbName;
+        if (base.substring(base.length - dbName.length) !== dbName) {
+            url = query ? `${base}/${dbName}?${query}` : `${base}/${dbName}`;
         }
         let conn;
         logger.info(`Attempting to connect at url: ${url}.`)

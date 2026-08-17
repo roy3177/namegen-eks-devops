@@ -33,9 +33,13 @@ resource "aws_subnet" "public" {
   map_public_ip_on_launch = true
 
   tags = {
-    Name                                         = "${var.project_name}-public-${count.index}"
-    "kubernetes.io/role/elb"                     = "1"
-    "kubernetes.io/cluster/${var.cluster_name}"  = "shared"
+    Name                                        = "${var.project_name}-public-${count.index}"
+    "kubernetes.io/role/elb"                    = "1"
+    "kubernetes.io/cluster/${var.cluster_name}" = "shared"
+    # EKS Auto Mode's own load-balancer controller discovers subnets via
+    # this tag namespace, separate from the classic kubernetes.io/* tags
+    # above (which alone were not enough — confirmed by trial and error).
+    "eks:eks-cluster-name" = var.cluster_name
   }
 }
 

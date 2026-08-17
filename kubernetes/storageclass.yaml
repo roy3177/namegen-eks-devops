@@ -1,10 +1,14 @@
+# EKS Auto Mode registers its own built-in EBS CSI driver
+# (ebs.csi.eks.amazonaws.com) but does not create a default StorageClass —
+# that's still on us to define, same as the classic approach, just with a
+# different provisioner name.
 apiVersion: storage.k8s.io/v1
 kind: StorageClass
 metadata:
-  name: ebs-gp3
+  name: auto-ebs-sc
   annotations:
     storageclass.kubernetes.io/is-default-class: "true"
-provisioner: ebs.csi.aws.com
+provisioner: ebs.csi.eks.amazonaws.com
 volumeBindingMode: WaitForFirstConsumer
 reclaimPolicy: Delete
 parameters:

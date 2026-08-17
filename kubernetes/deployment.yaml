@@ -21,12 +21,15 @@ spec:
     spec:
       containers:
         - name: namegen-app
-          image: roy3177/namegen:v2
+          image: roy3177/namegen:v3
           ports:
             - containerPort: 8080
           env:
             - name: MONGODB_URL
-              value: mongodb://mongodb-service.namegen.svc.cluster.local:27017
+              valueFrom:
+                secretKeyRef:
+                  name: mongodb-credentials
+                  key: MONGODB_URL
             - name: SERVER_PORT
               value: "8080"
           resources:

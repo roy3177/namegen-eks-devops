@@ -28,18 +28,6 @@ variable "kubernetes_version" {
   default     = "1.36"
 }
 
-variable "node_instance_type" {
-  description = "EC2 instance type for the EKS worker node"
-  type        = string
-  default     = "t3.small"
-}
-
-variable "node_desired_size" {
-  description = "Desired number of worker nodes"
-  type        = number
-  default     = 1
-}
-
 variable "github_actions_iam_user_arn" {
   description = "ARN of the IAM user GitHub Actions uses to deploy to EKS (granted kubectl access via aws_eks_access_entry)"
   type        = string

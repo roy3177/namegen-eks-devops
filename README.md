@@ -14,7 +14,7 @@ A Random Name Generator application deployed on **Amazon EKS**, demonstrating a 
 
 This is a **DevOps project** — the focus is the infrastructure and deployment pipeline, not the application itself. The application (Node.js + Express + MongoDB) is based on [reselbob/random-name-gen-app](https://github.com/reselbob/random-name-gen-app).
 
-🌐 **Live demo (while infra is up):** http://ac82cdc721cf64f838eabb8f79e43b04-b03027d493182b76.elb.us-east-1.amazonaws.com/
+🌐 **Live demo (while infra is up):** http://k8s-namegen-namegens-f94f8e2231-48ada57672fed484.elb.us-east-1.amazonaws.com/
 > ⚠️ This URL is only valid while the Terraform-managed infrastructure exists. It is destroyed (and a new, different URL is generated on the next `terraform apply`) whenever `terraform destroy` is run — see [Cost Notes](#cost-notes). To get the current URL yourself: `kubectl get service namegen-service -n namegen`.
 
 ![App screenshot](screenshots/site.png)
@@ -67,12 +67,25 @@ Amazon EKS Cluster
 |---|---|
 | Node.js App | REST API + static UI, `Deployment` (stateless) |
 | MongoDB | Data store, `StatefulSet` + `PersistentVolumeClaim` (EBS, never a `Deployment`) |
-| Amazon EKS | Managed Kubernetes control plane + worker node |
-| Terraform | Provisions all AWS infrastructure (VPC, IAM, EKS, EBS CSI driver) |
+| Amazon EKS | **Auto Mode** cluster — AWS manages compute (nodes), storage, and load balancer integration automatically |
+| Terraform | Provisions all AWS infrastructure (VPC, IAM, EKS Auto Mode cluster) |
 | Docker Hub | Container registry for the app image |
 | AWS Network Load Balancer | Exposes the app to the internet |
 
 More detail in [`skills/architecture.md`](skills/architecture.md).
+
+<details>
+<summary>EKS Auto Mode setup notes (things that aren't obvious from the docs)</summary>
+
+Getting Auto Mode fully working required a few things beyond the basic `compute_config`/`storage_config` toggle on `aws_eks_cluster`, confirmed by testing against real AWS behavior:
+- The cluster IAM role needs a **custom policy** granting `iam:CreateInstanceProfile` (and related) — the AWS-managed `AmazonEKSComputePolicy` only allows attaching to an *existing* profile, not creating one.
+- The cluster role's **trust policy** needs `sts:TagSession` in addition to `sts:AssumeRole` for `eks.amazonaws.com`, or Auto Mode's internal automation gets `AccessDenied`.
+- Auto Mode's built-in EBS driver registers as `ebs.csi.eks.amazonaws.com` (not the classic `ebs.csi.aws.com`) and does **not** auto-create a default `StorageClass` — see `kubernetes/storageclass.yaml`.
+- The NLB's subnets are selected explicitly via `service.beta.kubernetes.io/aws-load-balancer-subnets` (using subnet **Name tags**, not raw IDs) — tag-based auto-discovery didn't pick up the subnets in testing.
+- `service.beta.kubernetes.io/aws-load-balancer-scheme: internet-facing` is required — it defaults to internal (VPC-only) otherwise.
+
+All of this is already implemented in `terraform/` and `kubernetes/`; this note just explains the *why* behind those specific lines.
+</details>
 
 ---
 
@@ -83,7 +96,7 @@ More detail in [`skills/architecture.md`](skills/architecture.md).
 ├── app/                  # Node.js application source
 ├── Dockerfile
 ├── .dockerignore
-├── terraform/            # AWS infrastructure (VPC, EKS, IAM, EBS CSI driver)
+├── terraform/            # AWS infrastructure (VPC, IAM, EKS Auto Mode cluster)
 ├── kubernetes/           # K8s manifests (namespace, StatefulSet, Deployment, Services)
 ├── skills/               # Project conventions & standards (Docker, K8s, Terraform, CI/CD, cost, debugging)
 ├── diagrams/             # Architecture & CI/CD diagrams (WIP)
@@ -115,7 +128,7 @@ terraform plan
 terraform apply
 ```
 
-This creates a VPC (public subnets only, no NAT Gateway), an EKS cluster, a single-node managed node group (`t3.small`), and the EBS CSI driver (required for MongoDB's persistent storage).
+This creates a VPC (public subnets only, no NAT Gateway) and an **EKS Auto Mode** cluster. Auto Mode automatically provisions compute (nodes), a default EBS-backed StorageClass (used by MongoDB's PVC), and load balancer integration — no separate node group or CSI driver setup is needed.
 
 Connect `kubectl` to the new cluster:
 ```bash
@@ -133,6 +146,12 @@ docker push <your-dockerhub-username>/namegen:v1
 Update the image reference in [`kubernetes/deployment.yaml`](kubernetes/deployment.yaml) if your Docker Hub username differs.
 
 ### 3. Deploy to Kubernetes
+
+Create the MongoDB credentials Secret from the template (not committed to git):
+```bash
+cp kubernetes/mongodb-secret.yaml.example kubernetes/mongodb-secret.yaml
+# edit the values inside first if you don't want the example credentials
+```
 
 ```bash
 kubectl apply -f kubernetes/
@@ -166,8 +185,8 @@ Authentication uses a dedicated, least-privilege IAM user (`github-actions-nameg
 ## Cost Notes
 
 This project prioritizes minimum AWS cost (see [`skills/aws_costs.md`](skills/aws_costs.md)):
-- Single `t3.small` node, public subnets only (no NAT Gateway).
-- EKS control plane (~$0.10/hr) and the NLB are **not free-tier** and bill for as long as they exist.
+- Public subnets only (no NAT Gateway).
+- EKS control plane (~$0.10/hr), EKS Auto Mode compute (its own per-vCPU/GB-hour pricing, on top of the underlying EC2 cost), and the NLB are **not free-tier** and bill for as long as they exist.
 
 **When done working, tear down the infrastructure:**
 ```bash

@@ -9,6 +9,9 @@ crash.log
 app/node_modules/
 app/.env
 
+# Kubernetes secrets (real credentials — keep the .example template in git)
+kubernetes/mongodb-secret.yaml
+
 # OS / editor
 .DS_Store
 Thumbs.db

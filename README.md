@@ -72,7 +72,7 @@ Amazon EKS Cluster
 | Docker Hub | Container registry for the app image |
 | AWS Network Load Balancer | Exposes the app to the internet |
 
-More detail in [`skills/architecture.md`](skills/architecture.md).
+More detail in [`skills/architecture.md`](skills/architecture.md). A full architecture + CI/CD pipeline diagram (draw.io) is in [`diagrams/architecture-cicd.drawio`](diagrams/architecture-cicd.drawio) — GitHub renders it inline, or open it at [app.diagrams.net](https://app.diagrams.net).
 
 <details>
 <summary>EKS Auto Mode setup notes (things that aren't obvious from the docs)</summary>
@@ -99,7 +99,7 @@ All of this is already implemented in `terraform/` and `kubernetes/`; this note 
 ├── terraform/            # AWS infrastructure (VPC, IAM, EKS Auto Mode cluster)
 ├── kubernetes/           # K8s manifests (namespace, StatefulSet, Deployment, Services)
 ├── skills/               # Project conventions & standards (Docker, K8s, Terraform, CI/CD, cost, debugging)
-├── diagrams/             # Architecture & CI/CD diagrams (WIP)
+├── diagrams/             # Architecture & CI/CD diagrams (draw.io)
 ├── screenshots/          # Deployment screenshots
 └── .github/workflows/    # CI/CD pipeline (WIP)
 ```
